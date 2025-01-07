@@ -1,0 +1,23 @@
+:root {
+    --scrollbar-bg: #303030;
+  }
+  
+  [data-theme="light"] {
+    --scrollbar-bg: #fff;
+  }
+  
+  /* Scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-bg);
+    border-radius: 6px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #35FF69;
+    border-radius: 6px;
+  }
+  

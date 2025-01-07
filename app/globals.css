@@ -1,0 +1,46 @@
+.no-scrollbar::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Opera */
+}
+
+.custom-progress-bar-green {
+    background-color: #35FF69;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.custom-progress-bar-red {
+    background-color: red;
+    height: 4px;
+    border-radius: 2px;
+}
+.custom-progress-bar-pink {
+    background-color: #FF6DAD;
+    height: 4px;
+    border-radius: 2px;
+}
+.custom-progress-bar-blue {
+    background-color: #00D0FF;
+    height: 4px;
+    border-radius: 2px;
+}
+
+/* Login Page */
+.sliding-image-login {
+    translate: 100% 0;
+    transition: translate 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sliding-image-register {
+    translate: 0 0;
+    transition: translate 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media screen and (max-width: 1280px) {
+    .sliding-image-login {
+        translate: 0 100%;
+    }
+
+    .sliding-image-register {
+        translate: 0 0;
+    }
+}
