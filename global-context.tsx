@@ -119,7 +119,7 @@ export const GlobalContextProvider = ({children}: {children: React.ReactNode}) =
 
         console.log('Fetched Count: ', fetchedPokemonsCount)
 
-        if (fetchedPokemonsCount === total || fetchedPokemonsCount % 50 === 0) {
+        if (fetchedPokemonsCount === total || fetchedPokemonsCount % 10 === 0) {
           setAllPokemonFetchingProgress(Math.floor((fetchedPokemonsCount / total) * 100))
         }
       }
