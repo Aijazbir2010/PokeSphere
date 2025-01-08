@@ -18,7 +18,7 @@ export const meta: MetaFunction = () => {
 const About = () => {
 
   const { theme } = useContext(ThemeContext)
-  const { user,isUserFetching } = useContext(GlobalContext) 
+  const { user, isUserFetching } = useContext(GlobalContext) 
 
   return (
     <>
