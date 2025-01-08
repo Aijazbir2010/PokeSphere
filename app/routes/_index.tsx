@@ -155,7 +155,7 @@ export default function Index() {
         {(isFetchingAllPokemons || isLoading || isUserFetching || isPokemonFetching) && <div className={`${theme === 'dark' ? 'bg-darkThemePrimary' : 'bg-lightThemePrimary'} opacity-80 fixed inset-0 z-[60] flex justify-center items-center`}>
           <Spinner />
           {isFetchingAllPokemons && (
-            <div className="flex flex-col items-center gap-5 w-full absolute z-[70] mt-40">
+            <div className="flex flex-col items-center gap-5 w-full absolute z-[70] mt-56">
             <div className="fetching-container">
               <span className="text-themeGreen font-bold text-3xl md:text-4xl">Fetching Pokémons</span>
               <span className="dots text-themeGreen font-bold text-5xl ml-2">
@@ -164,6 +164,7 @@ export default function Index() {
                 <span>.</span>
               </span>
             </div>
+            <span className="text-themeGreen font-bold text-3xl md:text-4xl">{allPokemonFetchingProgress}% Complete</span>
             <div className={`w-[80%] bg-themeGreen/20 h-4 rounded-full`}>
               <div style={{width: `${allPokemonFetchingProgress}%`, transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)'}} className=" bg-themeGreen h-4 rounded-full"></div>
             </div>
