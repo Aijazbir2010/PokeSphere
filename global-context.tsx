@@ -9,6 +9,8 @@ interface GlobalContextType {
     isLoading: boolean
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
     allPokemons: any[] | null
+    isFetchingAllPokemons: boolean
+    allPokemonFetchingProgress: number
     filters: FiltersType
     setFilters: React.Dispatch<React.SetStateAction<FiltersType>>
     user: any | null
@@ -31,6 +33,8 @@ export const GlobalContext = createContext<GlobalContextType>({
     isLoading: false,
     setIsLoading: () => false,
     allPokemons: [],
+    isFetchingAllPokemons: false,
+    allPokemonFetchingProgress: 0,
     filters: {selectedType: '', selectedAbility: '', weight: 0, height: 0, selectedSortOrder: ''},
     setFilters: () => ({selectedType: '', selectedAbility: '', weight: 0, height: 0, selectedSortOrder: ''}),
     user: null,
@@ -55,6 +59,8 @@ export const GlobalContextProvider = ({children}: {children: React.ReactNode}) =
   const [isUserFetching, setIsUserFetching] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [allPokemons, setAllPokemons] = useState<any[] | null>(null)
+  const [isFetchingAllPokemons, setIsFetchingAllPokemons] = useState(false)
+  const [allPokemonFetchingProgress, setAllPokemonFetchingProgress] = useState(0)
 
   const fetchUser = async () => {
     try {
@@ -95,24 +101,33 @@ export const GlobalContextProvider = ({children}: {children: React.ReactNode}) =
 
   const fetchAllPokemons = async () => {
     try {
-      setIsLoading(true)
+      setIsFetchingAllPokemons(true)
+      const total = 1025
+      let fetchedPokemonsCount = 0
       const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0');
   
       const data = await response.json();
       const pokemons = data.results;
   
-      const pokemonsDetails = await Promise.all(
-        pokemons.map(async (pokemon: { name: string }) => {
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`);
-          const pokemonDetails = await response.json();
-          return pokemonDetails;
-        })
-      );
+      const pokemonsDetails: any[] = [];
   
+      for (const pokemon of pokemons) {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
+        const pokemonDetails = await response.json()
+        pokemonsDetails.push(pokemonDetails)
+        fetchedPokemonsCount++;
+
+        console.log('Fetched Count: ', fetchedPokemonsCount)
+
+        if (fetchedPokemonsCount === total || fetchedPokemonsCount % 50 === 0) {
+          setAllPokemonFetchingProgress(Math.floor((fetchedPokemonsCount / total) * 100))
+        }
+      }
+
       setAllPokemons(pokemonsDetails)
-      setIsLoading(false)
+      setIsFetchingAllPokemons(false)
     } catch (err) {
-      setIsLoading(false)
+      setIsFetchingAllPokemons(false)
       console.log('Failed to fetch all Pokemons !', err);
     }
   }
@@ -214,6 +229,8 @@ export const GlobalContextProvider = ({children}: {children: React.ReactNode}) =
         isLoading,
         setIsLoading,
         allPokemons,
+        isFetchingAllPokemons,
+        allPokemonFetchingProgress,
         filters,
         setFilters,
         user,

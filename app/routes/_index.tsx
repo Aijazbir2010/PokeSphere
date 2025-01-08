@@ -26,7 +26,7 @@ export default function Index() {
 
   const [searchParams, setSearchParams] = useSearchParams()
   const { theme } = useContext(ThemeContext)
-  const {isLoading, setIsLoading, allPokemons, filters, user, isUserFetching} = useContext(GlobalContext)
+  const {isLoading, setIsLoading, allPokemons, isFetchingAllPokemons, allPokemonFetchingProgress, filters, user, isUserFetching} = useContext(GlobalContext)
 
   const [pokemons, setPokemons] = useState<any[] | null>(null)
   const [offset, setOffset] = useState(50)
@@ -152,8 +152,23 @@ export default function Index() {
 
   return (
     <>
-        {(isLoading || isUserFetching || isPokemonFetching) && <div className={`${theme === 'dark' ? 'bg-darkThemePrimary' : 'bg-lightThemePrimary'} opacity-80 fixed inset-0 z-[60] flex justify-center items-center`}>
+        {(isFetchingAllPokemons || isLoading || isUserFetching || isPokemonFetching) && <div className={`${theme === 'dark' ? 'bg-darkThemePrimary' : 'bg-lightThemePrimary'} opacity-80 fixed inset-0 z-[60] flex justify-center items-center`}>
           <Spinner />
+          {isFetchingAllPokemons && (
+            <div className="flex flex-col items-center gap-5 w-full absolute z-[70] mt-40">
+            <div className="fetching-container">
+              <span className="text-themeGreen font-bold text-3xl md:text-4xl">Fetching Pokémons</span>
+              <span className="dots text-themeGreen font-bold text-5xl ml-2">
+                <span>.</span>
+                <span>.</span>
+                <span>.</span>
+              </span>
+            </div>
+            <div className={`w-[80%] bg-themeGreen/20 h-4 rounded-full`}>
+              <div style={{width: `${allPokemonFetchingProgress}%`, transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)'}} className=" bg-themeGreen h-4 rounded-full"></div>
+            </div>
+          </div>
+          )}
         </div>}
         
         {user ? <Navbar name={user.name}/> : <UnNavbar />}
