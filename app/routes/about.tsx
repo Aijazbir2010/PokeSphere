@@ -1,10 +1,12 @@
 import { MetaFunction } from "@remix-run/node"
 import { useContext } from "react"
 import { ThemeContext } from "theme-context"
+import { GlobalContext } from "global-context"
 import UnNavbar from "components/UnNavbar"
 import Navbar from "components/Navbar"
 import Footer from "components/Footer"
 import GoBackButton from "components/GoBackButton"
+import Spinner from "components/Spinner"
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,11 +17,16 @@ export const meta: MetaFunction = () => {
 
 const About = () => {
 
-  const { theme } = useContext(ThemeContext)  
+  const { theme } = useContext(ThemeContext)
+  const { user,isUserFetching } = useContext(GlobalContext) 
 
   return (
     <>
-        <UnNavbar />
+        {isUserFetching && <div className={`${theme === 'dark' ? 'bg-darkThemePrimary' : 'bg-lightThemePrimary'} opacity-80 fixed inset-0 z-[60] flex justify-center items-center`}>
+          <Spinner />
+        </div>}
+
+        {user ? <Navbar name={user.name}/> : <UnNavbar />}
 
         <GoBackButton />
 
