@@ -51,7 +51,7 @@ const Footer = () => {
         </div>
 
         <div className="flex justify-center w-full absolute bottom-5">
-            <span className="text-themeTextGray">&copy; PokéSphere {new Date().getFullYear()} All Rights Reserved.</span>   
+            <span className="text-themeTextGray">&copy; {new Date().getFullYear()} PokéSphere. All Rights Reserved.</span>   
         </div>
     </div>
     
