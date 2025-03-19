@@ -29,10 +29,10 @@ const Footer = () => {
                         <i className="material-icons text-themeTextGray group-hover:text-themeGreen transition-colors duration-300">subdirectory_arrow_right</i>
                         <span className="font-bold text-themeTextGray group-hover:text-themeGreen transition-colors duration-300">About</span>
                     </Link>
-                    <Link to={'/about'} className="flex flex-row gap-1 items-center group">
+                    <a href={"https://aijazbir.vercel.app"} target={"_blank"} rel={"noopener noreferrer"} className="flex flex-row gap-1 items-center group">
                         <i className="material-icons text-themeTextGray group-hover:text-themeGreen transition-colors duration-300">language</i>
                         <span className="font-bold text-themeTextGray group-hover:text-themeGreen transition-colors duration-300">Portfolio</span>
-                    </Link>   
+                    </a>   
                 </div> 
             </div>
             <div className="flex flex-col items-center gap-5">
