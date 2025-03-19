@@ -4,11 +4,11 @@ export const filterPokemons = (pokemons: any[], filters: FiltersType) => {
     let filteredPokemons = [...pokemons]
 
     if (filters.selectedType) {
-        filteredPokemons = filteredPokemons.filter((pokemon) => pokemon.types.some((typeObj: any) => typeObj.type.name === filters.selectedType.toLowerCase()))
+        filteredPokemons = filteredPokemons.filter((pokemon) => pokemon.types.some((type: string) => type === filters.selectedType.toLowerCase()))
     }
 
     if (filters.selectedAbility) {
-        filteredPokemons = filteredPokemons.filter((pokemon) => pokemon.abilities.some((abilityObj: any) => abilityObj.ability.name === filters.selectedAbility.toLowerCase().replace(' ', '-')))
+        filteredPokemons = filteredPokemons.filter((pokemon) => pokemon.abilities.some((ability: string) => ability === filters.selectedAbility.toLowerCase().replace(' ', '-')))
     }
 
     if (filters.weight) {

@@ -10,13 +10,7 @@ interface PokemonCard {
     height: number
     weight: number
     base_xp: number
-    types: {
-        slot: number,
-        type: {
-            name: string,
-            url: string,
-        }
-    }[]
+    types: string[]
 }
 
 const PokemonCard = ({ id, sprite, name, height, weight, base_xp, types }: PokemonCard) => {
@@ -51,7 +45,7 @@ const PokemonCard = ({ id, sprite, name, height, weight, base_xp, types }: Pokem
                 <span className={`text-2xl md:text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-themeBlack'}`}>{capitalizeFirstLetter(name).replaceAll('-', ' ')}</span>
                 <span className="font-bold text-themeTextGray text-xs">{height}M, {weight}KG, {base_xp}XP</span>
                 <div className="flex flex-row justify-center gap-5 w-full mt-2">
-                    {types.map((typeObj, index) => (<div key={index} className={`bg-${typeObj.type.name} rounded-full w-fit px-3 py-1 text-white font-bold text-sm flex justify-center items-center`}>{capitalizeFirstLetter(typeObj.type.name)}</div>))}
+                    {types.map((type, index) => (<div key={index} className={`bg-${type} rounded-full w-fit px-3 py-1 text-white font-bold text-sm flex justify-center items-center`}>{capitalizeFirstLetter(type)}</div>))}
                 </div>
             </div>
         </div>

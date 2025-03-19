@@ -26,39 +26,24 @@ export default function Index() {
 
   const [searchParams, setSearchParams] = useSearchParams()
   const { theme } = useContext(ThemeContext)
-  const {isLoading, setIsLoading, allPokemons, isFetchingAllPokemons, allPokemonFetchingProgress, filters, user, isUserFetching} = useContext(GlobalContext)
+  const {allPokemons, isFetchingAllPokemons, filters, user, isUserFetching} = useContext(GlobalContext)
 
-  const [pokemons, setPokemons] = useState<any[] | null>(null)
-  const [offset, setOffset] = useState(50)
-  const [isPokemonFetching, setIsPokemonFetching] = useState(false)
-
-  const fetchPokemons = async () => {
-    try {
-      setIsPokemonFetching(true)
-      const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=50&offset=0');
-  
-      const data = await response.json();
-      const pokemons = data.results;
-  
-      const pokemonsDetails = await Promise.all(
-        pokemons.map(async (pokemon: { name: string }) => {
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`);
-          const pokemonDetails = await response.json();
-          return pokemonDetails;
-        })
-      );
-  
-      setPokemons(pokemonsDetails)
-      setIsPokemonFetching(false)
-    } catch (err) {
-      setIsPokemonFetching(false)
-      console.log('Failed to fetch Pokemons !', err);
-    }
-  }
+  const [pokemons, setPokemons] = useState<{
+    id: number,
+    sprite: string,
+    name: string,
+    height: number,
+    weight: number,
+    base_xp: number,
+    abilities: string[],
+    types: string[],
+    cries: {latest: string | null, legacy: string | null},
+    stats: {name: string, base_stat: number}[],
+  }[] | null>(null)
 
   useEffect(() => {
-    fetchPokemons()
-  }, [])
+    setPokemons(allPokemons)
+  }, [allPokemons])
 
   useEffect(() => {
     const msg = searchParams.get('msg')
@@ -81,51 +66,6 @@ export default function Index() {
 
   }, [searchParams])
 
-  const fetchMorePokemons = async () => {
-    try {
-      if (offset < 1000) {
-        setIsLoading(true)
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=50&offset=${offset}`)
-        const data = await response.json()
-        const pokemons = data.results
-
-        const pokemonsDetails = await Promise.all(pokemons.map( async (pokemon: {name: string}) => {
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
-          const pokemonDetails = await response.json()
-          return pokemonDetails
-        }))
-
-        setPokemons((prevPokemons) => [...(prevPokemons || []), ...pokemonsDetails])
-        setOffset((prevOffset) => prevOffset + 50)
-        setIsLoading(false)
-      } else if (offset === 1000) {
-          setIsLoading(true)
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=25&offset=${offset}`)
-          const data = await response.json()
-          const pokemons = data.results
-
-          const pokemonsDetails = await Promise.all(pokemons.map( async (pokemon: {name: string}) => {
-            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
-            const pokemonDetails = await response.json()
-            return pokemonDetails
-          }))
-
-          setPokemons((prevPokemons) => [...(prevPokemons || []), ...pokemonsDetails])
-          setOffset(1025)
-          setIsLoading(false)
-      }
-    } catch (err) {
-        setIsLoading(false)
-        console.log('Failed to fetch more Pokemons !', err)
-    }
-    
-  }
-
-  const showLessPokemons = () => {
-    setPokemons((prevPokemons) => (prevPokemons ?? []).filter((_, index) => index < 50))
-    setOffset(50)
-  }
-
   const handleSearch = (query: string) => {
     const filteredPokemons = searchPokemons((allPokemons ?? []), query)
     setPokemons(filteredPokemons)
@@ -142,7 +82,7 @@ export default function Index() {
       const filteredPokemons = filterPokemons((allPokemons ?? []), filters)
       setPokemons(filteredPokemons)
     } else {
-      setPokemons((allPokemons ?? []).filter((_, index) => index < 50))
+      setPokemons(allPokemons ?? [])
     }
     
   }
@@ -152,24 +92,8 @@ export default function Index() {
 
   return (
     <>
-        {(isFetchingAllPokemons || isLoading || isUserFetching || isPokemonFetching) && <div className={`${theme === 'dark' ? 'bg-darkThemePrimary' : 'bg-lightThemePrimary'} opacity-80 fixed inset-0 z-[60] flex justify-center items-center`}>
+        {(isFetchingAllPokemons || isUserFetching) && <div className={`${theme === 'dark' ? 'bg-darkThemePrimary' : 'bg-lightThemePrimary'} opacity-80 fixed inset-0 z-[60] flex justify-center items-center`}>
           <Spinner />
-          {isFetchingAllPokemons && (
-            <div className="flex flex-col items-center gap-5 w-full absolute z-[70] mt-56">
-            <div className="fetching-container">
-              <span className="text-themeGreen font-bold text-3xl md:text-4xl">Fetching Pokémons</span>
-              <span className="dots text-themeGreen font-bold text-5xl ml-2">
-                <span>.</span>
-                <span>.</span>
-                <span>.</span>
-              </span>
-            </div>
-            <span className="text-themeGreen font-bold text-3xl md:text-4xl">{allPokemonFetchingProgress}% Complete</span>
-            <div className={`w-[80%] bg-themeGreen/20 h-4 rounded-full`}>
-              <div style={{width: `${allPokemonFetchingProgress}%`, transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)'}} className=" bg-themeGreen h-4 rounded-full"></div>
-            </div>
-          </div>
-          )}
         </div>}
         
         {user ? <Navbar name={user.name}/> : <UnNavbar />}
@@ -179,22 +103,12 @@ export default function Index() {
         <Filters />
 
         {pokemons ? (<section className={`browse-pokemons mx-2 md:mx-10 mt-10 grid justify-center gap-5 grid-cols-1 custom-screen-3:grid-cols-2 custom-screen-2:grid-cols-3 custom-screen:grid-cols-4 ${pokemons.length !== 0 ? 'h-[600px]' : 'h-0'} overflow-y-auto`}>
-          {pokemons.map((pokemon, index) => (<PokemonCard key={index} base_xp={pokemon.base_experience} height={pokemon.height} id={pokemon.id} name={pokemon.name} sprite={pokemon.sprites.other.home.front_default} types={pokemon.types} weight={pokemon.weight}/>))}
+          {pokemons.map((pokemon, index) => (<PokemonCard key={index} base_xp={pokemon.base_xp} height={pokemon.height} id={pokemon.id} name={pokemon.name} sprite={pokemon.sprite} types={pokemon.types} weight={pokemon.weight}/>))}
         </section>) : (<div className={`w-full mt-10 h-[700px] flex justify-center items-center`}>
           <Spinner />
         </div>)}
   
         {pokemons && pokemons.length === 0 && <div className="flex justify-center items-center w-full h-[400px]"><span className={`text-3xl md:text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-themeBlack'}`}>No Pokemons !</span></div>}
-
-        {pokemons && <div className="flex justify-center mt-5">
-            {offset !== 1025 ? (<div className={`flex flex-row items-center gap-1 ${theme === 'dark' ? 'bg-darkThemePrimary' : 'bg-lightThemePrimary'} hover:bg-themeGreen/40 px-3 md:px-6 py-3 w-fit h-14 rounded-2xl group cursor-pointer drop-shadow-md transition-colors duration-300`} onClick={fetchMorePokemons}>
-                <span className="font-bold text-themeTextGray group-hover:text-themeGreen transition-colors duration-300">Show More</span>
-                <i className="fa-solid fa-chevron-down fa-lg text-themeTextGray group-hover:text-themeGreen transition-colors duration-300"></i>
-            </div>) : (<div className={`flex flex-row items-center gap-1 ${theme === 'dark' ? 'bg-darkThemePrimary' : 'bg-lightThemePrimary'} hover:bg-themeGreen/40 px-3 md:px-6 py-3 w-fit h-14 rounded-2xl group cursor-pointer drop-shadow-md transition-colors duration-300`} onClick={showLessPokemons}>
-                <span className="font-bold text-themeTextGray group-hover:text-themeGreen transition-colors duration-300">Show Less</span>
-                <i className="fa-solid fa-chevron-up fa-lg text-themeTextGray group-hover:text-themeGreen transition-colors duration-300"></i>
-            </div>)}
-        </div>}
 
         <Footer />
     </>

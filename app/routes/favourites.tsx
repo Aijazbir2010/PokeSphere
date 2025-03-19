@@ -1,4 +1,5 @@
 import { MetaFunction } from "@remix-run/node";
+import { useFetcher } from "@remix-run/react";
 import { useContext, useState, useEffect } from "react";
 import { ThemeContext } from "theme-context";
 import { GlobalContext } from "global-context";
@@ -18,6 +19,23 @@ export const meta: MetaFunction = () => {
   ];
 }; 
 
+type LikedPokemonsFetcherDataType = {
+  pokemons?: {
+    id: number,
+    sprite: string,
+    name: string,
+    height: number,
+    weight: number,
+    base_xp: number,
+    abilities: string[],
+    types: string[],
+    cries: {latest: string | null, legacy: string | null},
+    stats: {name: string, base_stat: number}[],
+  }[],
+  success?: true,
+  error?: string,
+}
+
 const Favourites = () => {
 
   useEffect(() => {
@@ -30,6 +48,7 @@ const Favourites = () => {
   const { theme } = useContext(ThemeContext)
   const { user, isUserFetching, filters } = useContext(GlobalContext)
 
+  const likedPokemonsFetcher = useFetcher<LikedPokemonsFetcherDataType>()
   const [likedPokemons, setLikedPokemons] = useState<any[] | null>(null)
   const [pokemons, setPokemons] = useState<any[] | null>(null)
   const [isPokemonFetching, setIsPokemonFetching] = useState(false)
@@ -37,18 +56,15 @@ const Favourites = () => {
   const fetchLikedPokemons = async () => {
     if (user) {
       try {
-        setIsPokemonFetching(true)
-        const pokemonsDetails = await Promise.all(
-          [...(user.likedPokemons)].reverse().map(async (id: string) => {
-            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${parseInt(id)}`)
-            const pokemonDetails = await response.json()
-            return pokemonDetails
-          })
-        )
+        const likedPokemons: any = [...(user.likedPokemons)].reverse()
 
-        setLikedPokemons(pokemonsDetails)
-        setPokemons(pokemonsDetails)
-        setIsPokemonFetching(false)
+        const formData = new FormData()
+        formData.append('likedPokemons', likedPokemons)
+
+        likedPokemonsFetcher.submit(formData, {
+          method: 'post',
+          action: '/api/fetchLikedPokemons',
+        })
       } catch (err) {
         setIsPokemonFetching(false)
         console.log('Cannot fetch Liked Pokemons !', err)
@@ -57,8 +73,24 @@ const Favourites = () => {
   }
 
   useEffect(() => {
-    fetchLikedPokemons()
+    if (!likedPokemons) {
+      fetchLikedPokemons()
+    }
   }, [user])
+
+  useEffect(() => {
+    if (likedPokemonsFetcher.state === 'idle' && likedPokemonsFetcher.data?.success && likedPokemonsFetcher.data?.pokemons) {
+      setIsPokemonFetching(false)
+      setPokemons(likedPokemonsFetcher.data.pokemons)
+      setLikedPokemons(likedPokemonsFetcher.data.pokemons)
+    } else if (likedPokemonsFetcher.state === 'loading' || likedPokemonsFetcher.state === 'submitting') {
+      setIsPokemonFetching(true)
+    } else if (likedPokemonsFetcher.state === 'idle' && likedPokemonsFetcher.data?.error) {
+      setIsPokemonFetching(false)
+    } else if (likedPokemonsFetcher.state === 'idle') {
+      setIsPokemonFetching(false)
+    }
+  }, [likedPokemonsFetcher])
 
   const handleSearch = (query: string) => {
       const filteredPokemons = searchPokemons((likedPokemons ?? []), query)
@@ -97,7 +129,7 @@ const Favourites = () => {
       <Filters />
 
       {pokemons ? (<section className={`browse-pokemons mx-2 md:mx-10 mt-10 grid justify-center gap-5 grid-cols-1 custom-screen-3:grid-cols-2 custom-screen-2:grid-cols-3 custom-screen:grid-cols-4 ${pokemons.length !== 0 ? 'h-[600px]' : 'h-0'} overflow-y-auto`}>
-          {pokemons.map((pokemon, index) => (<PokemonCard key={index} base_xp={pokemon.base_experience} height={pokemon.height} id={pokemon.id} name={pokemon.name} sprite={pokemon.sprites.other.home.front_default} types={pokemon.types} weight={pokemon.weight}/>))}
+          {pokemons.map((pokemon, index) => (<PokemonCard key={index} base_xp={pokemon.base_xp} height={pokemon.height} id={pokemon.id} name={pokemon.name} sprite={pokemon.sprite} types={pokemon.types} weight={pokemon.weight}/>))}
         </section>) : (<div className={`w-full mt-10 h-[700px] flex justify-center items-center`}>
           <Spinner />
         </div>)}

@@ -10,7 +10,6 @@ interface GlobalContextType {
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
     allPokemons: any[] | null
     isFetchingAllPokemons: boolean
-    allPokemonFetchingProgress: number
     filters: FiltersType
     setFilters: React.Dispatch<React.SetStateAction<FiltersType>>
     user: any | null
@@ -34,7 +33,6 @@ export const GlobalContext = createContext<GlobalContextType>({
     setIsLoading: () => false,
     allPokemons: [],
     isFetchingAllPokemons: false,
-    allPokemonFetchingProgress: 0,
     filters: {selectedType: '', selectedAbility: '', weight: 0, height: 0, selectedSortOrder: ''},
     setFilters: () => ({selectedType: '', selectedAbility: '', weight: 0, height: 0, selectedSortOrder: ''}),
     user: null,
@@ -51,16 +49,33 @@ type UserFetcherData = {
   error?: string
 }
 
+type PokemonsFetcherData = {
+  pokemons?: {
+        id: number,
+        sprite: string,
+        name: string,
+        height: number,
+        weight: number,
+        base_xp: number,
+        abilities: string[],
+        types: string[],
+        cries: {latest: string | null, legacy: string | null},
+        stats: {name: string, base_stat: number}[],
+  }[],
+  success?: boolean,
+  error?: string,
+}
+
 export const GlobalContextProvider = ({children}: {children: React.ReactNode}) => {
 
   const { theme } = useContext(ThemeContext)
   const userFetcher = useFetcher<UserFetcherData>()
+  const pokemonsFetcher = useFetcher<PokemonsFetcherData>()
   const [user, setUser] = useState<any | null>(null)
   const [isUserFetching, setIsUserFetching] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [allPokemons, setAllPokemons] = useState<any[] | null>(null)
   const [isFetchingAllPokemons, setIsFetchingAllPokemons] = useState(false)
-  const [allPokemonFetchingProgress, setAllPokemonFetchingProgress] = useState(0)
 
   const fetchUser = async () => {
     try {
@@ -101,31 +116,7 @@ export const GlobalContextProvider = ({children}: {children: React.ReactNode}) =
 
   const fetchAllPokemons = async () => {
     try {
-      setIsFetchingAllPokemons(true)
-      const total = 1025
-      let fetchedPokemonsCount = 0
-      const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0');
-  
-      const data = await response.json();
-      const pokemons = data.results;
-  
-      const pokemonsDetails: any[] = [];
-  
-      for (const pokemon of pokemons) {
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
-        const pokemonDetails = await response.json()
-        pokemonsDetails.push(pokemonDetails)
-        fetchedPokemonsCount++;
-
-        console.log('Fetched Count: ', fetchedPokemonsCount)
-
-        if (fetchedPokemonsCount === total || fetchedPokemonsCount % 10 === 0) {
-          setAllPokemonFetchingProgress(Math.floor((fetchedPokemonsCount / total) * 100))
-        }
-      }
-
-      setAllPokemons(pokemonsDetails)
-      setIsFetchingAllPokemons(false)
+      pokemonsFetcher.load('/api/fetchAllPokemons')
     } catch (err) {
       setIsFetchingAllPokemons(false)
       console.log('Failed to fetch all Pokemons !', err);
@@ -135,6 +126,19 @@ export const GlobalContextProvider = ({children}: {children: React.ReactNode}) =
   useEffect(() => {
     fetchAllPokemons()
   }, [])
+
+  useEffect(() => {
+    if (pokemonsFetcher.state === 'idle' && pokemonsFetcher.data?.success && pokemonsFetcher.data?.pokemons) {
+      setIsFetchingAllPokemons(false)
+      setAllPokemons(pokemonsFetcher.data.pokemons)
+    } else if (pokemonsFetcher.state === 'loading' || pokemonsFetcher.state === 'submitting') {
+      setIsFetchingAllPokemons(true)
+    } else if (pokemonsFetcher.state === 'idle' && pokemonsFetcher.data?.error) {
+      setIsFetchingAllPokemons(false)
+    } else if (pokemonsFetcher.state === 'idle') {
+      setIsFetchingAllPokemons(false)
+    }
+  }, [pokemonsFetcher])
 
   const [filters, setFilters] = useState<FiltersType>({selectedType: '', selectedAbility: '', weight: 0, height: 0, selectedSortOrder: ''})
 
@@ -230,7 +234,6 @@ export const GlobalContextProvider = ({children}: {children: React.ReactNode}) =
         setIsLoading,
         allPokemons,
         isFetchingAllPokemons,
-        allPokemonFetchingProgress,
         filters,
         setFilters,
         user,
